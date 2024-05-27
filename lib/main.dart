@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:test_todoapp_youtube/routes/routes_provider.dart';
+import 'routes/routes_provider.dart';
 
 import 'config/app_theme.dart';
-import 'screens/home_screen.dart';
 
-import 'package:riverpod/riverpod.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));

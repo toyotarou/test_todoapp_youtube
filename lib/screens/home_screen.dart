@@ -1,136 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// import 'package:flutter_riverpod_todo_app/config/config.dart';
+// import 'package:flutter_riverpod_todo_app/data/data.dart';
+// import 'package:flutter_riverpod_todo_app/providers/providers.dart';
+// import 'package:flutter_riverpod_todo_app/utils/utils.dart';
+// import 'package:flutter_riverpod_todo_app/widgets/widgets.dart';
+
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import '../data/task_category.dart';
-import '../models/task.dart';
-import '../routes/route_location.dart';
-import '../widgets/display_list_of_tasks.dart';
+import 'package:test_todoapp_youtube/utils/extensions.dart';
 
+import '../models/task.dart';
+import '../providers/date_provider.dart';
+import '../routes/route_location.dart';
+import '../state/task/task_provider.dart';
+import '../utils/helpers.dart';
+import '../widgets/app_background.dart';
+import '../widgets/display_list_of_tasks.dart';
 import '../widgets/display_white_text.dart';
 
-import '../utils/extensions.dart';
-
-class HomeScreen extends StatefulWidget {
-  static HomeScreen builder(BuildContext context, GoRouterState state) => const HomeScreen();
+class HomeScreen extends ConsumerWidget {
+  static HomeScreen builder(
+    BuildContext context,
+    GoRouterState state,
+  ) =>
+      const HomeScreen();
 
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
     final deviceSize = context.deviceSize;
+    final date = ref.watch(dateProvider);
+    final taskState = ref.watch(tasksProvider);
+    final inCompletedTasks = _incompltedTask(taskState.tasks, ref);
+    final completedTasks = _compltedTask(taskState.tasks, ref);
 
     return Scaffold(
       body: Stack(
         children: [
-          Column(
-            children: [
-              Container(
-                height: deviceSize.height * 0.3,
-                width: deviceSize.width,
-                color: colors.primary,
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      DisplayWhiteText(text: 'Aug 7, 2023', fontSize: 20, fontWeight: FontWeight.normal),
-                      DisplayWhiteText(text: 'My Todo List', fontSize: 40),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 200,
-            left: 20,
-            right: 20,
-            child: SingleChildScrollView(
+          AppBackground(
+            headerHeight: deviceSize.height * 0.3,
+            header: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const DisplayListOfTasks(
-                    tasks: [
-                      Task(
-                        title: 'title',
-                        category: TaskCategory.education,
-                        time: '10:00',
-                        date: 'date',
-                        note: 'note',
-                        isCompleted: false,
-                      ),
-                      Task(
-                        title: 'title',
-                        category: TaskCategory.shopping,
-                        time: '10:00',
-                        date: 'date',
-                        note: 'note',
-                        isCompleted: false,
-                      ),
-                    ],
+                  InkWell(
+                    onTap: () => Helpers.selectDate(context, ref),
+                    child: DisplayWhiteText(
+                      text: Helpers.dateFormatter(date),
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
-                  // CommonContainer(
-                  //   width: deviceSize.width,
-                  //   height: deviceSize.height * 0.3,
-                  //   borderRadius: 10,
-                  //   color: colors.primaryContainer,
-                  //   child: ListView.builder(
-                  //     padding: MediaQuery.of(context).padding.copyWith(left: 10, right: 10, bottom: 10, top: 10),
-                  //     shrinkWrap: true,
-                  //     itemCount: 30,
-                  //     itemBuilder: (context, index) {
-                  //       return Text('Home$index');
-                  //     },
-                  //   ),
-                  // ),
-                  const Gap(20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'completed',
-                        style: context.textTheme.headlineMedium,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          showToastAndNavigate();
-                        },
-                        child: Text('btn'),
-                      ),
-                    ],
-                  ),
-                  const Gap(20),
-
-                  const DisplayListOfTasks(
-                    tasks: [],
-                  ),
-
-                  // CommonContainer(
-                  //   width: deviceSize.width,
-                  //   height: deviceSize.height * 0.3,
-                  //   borderRadius: 10,
-                  //   color: colors.primaryContainer,
-                  //   child: ListView.builder(
-                  //     padding: MediaQuery.of(context).padding.copyWith(left: 10, right: 10, bottom: 10, top: 10),
-                  //     shrinkWrap: true,
-                  //     itemCount: 30,
-                  //     itemBuilder: (context, index) {
-                  //       return Text('Home$index');
-                  //     },
-                  //   ),
-                  // ),
-                  const Gap(20),
-                  ElevatedButton(
-                    onPressed: () => context.push(RouteLocation.createTask),
-                    child: const DisplayWhiteText(text: 'Add New Task'),
-                  ),
+                  const DisplayWhiteText(text: 'My Todo List', fontSize: 40),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 130,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DisplayListOfTasks(
+                      tasks: inCompletedTasks,
+                    ),
+                    const Gap(20),
+                    Text(
+                      'Completed',
+                      style: context.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Gap(20),
+                    DisplayListOfTasks(
+                      isCompletedTasks: true,
+                      tasks: completedTasks,
+                    ),
+                    const Gap(20),
+                    ElevatedButton(
+                      onPressed: () => context.push(RouteLocation.createTask),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: DisplayWhiteText(
+                          text: 'Add New Task',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -139,15 +105,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  ///
-  Future<void> showToastAndNavigate() async {
-    OverlayEntry overlayEntry =
-        OverlayEntry(builder: (context) => Positioned.fill(child: Container(color: Colors.redAccent.withOpacity(0.2))));
+  List<Task> _incompltedTask(List<Task> tasks, WidgetRef ref) {
+    final date = ref.watch(dateProvider);
+    final List<Task> filteredTask = [];
 
-    Overlay.of(context).insert(overlayEntry);
+    for (var task in tasks) {
+      if (!task.isCompleted) {
+        final isTaskDay = Helpers.isTaskFromSelectedDate(task, date);
+        if (isTaskDay) {
+          filteredTask.add(task);
+        }
+      }
+    }
+    return filteredTask;
+  }
 
-    await Future.delayed(Duration(milliseconds: 1400));
+  List<Task> _compltedTask(List<Task> tasks, WidgetRef ref) {
+    final date = ref.watch(dateProvider);
+    final List<Task> filteredTask = [];
 
-    overlayEntry.remove();
+    for (var task in tasks) {
+      if (task.isCompleted) {
+        final isTaskDay = Helpers.isTaskFromSelectedDate(task, date);
+        if (isTaskDay) {
+          filteredTask.add(task);
+        }
+      }
+    }
+    return filteredTask;
   }
 }
