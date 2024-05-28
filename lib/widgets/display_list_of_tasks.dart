@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:test_todoapp_youtube/utils/extensions.dart';
 
 import '../models/task.dart';
+import '../state/task/task_provider.dart';
+import 'app_alert.dart';
 import 'common_container.dart';
 import 'task_details.dart';
 import 'task_tile.dart';
@@ -41,13 +43,11 @@ class DisplayListOfTasks extends ConsumerWidget {
 
                 return InkWell(
                   onLongPress: () async {
-                    // await AppAlerts.showAlertDeleteDialog(
-                    //   context: context,
-                    //   ref: ref,
-                    //   task: task,
-                    // );
-                    //
-                    //
+                    await AppAlerts.showAlertDeleteDialog(
+                      context: context,
+                      ref: ref,
+                      task: task,
+                    );
                   },
                   onTap: () async {
                     await showModalBottomSheet(
@@ -60,14 +60,12 @@ class DisplayListOfTasks extends ConsumerWidget {
                   child: TaskTile(
                     task: task,
                     onCompleted: (value) async {
-                      // await ref.read(tasksProvider.notifier).updateTask(task).then((value) {
-                      //   AppAlerts.displaySnackbar(
-                      //     context,
-                      //     task.isCompleted ? 'Task incompleted' : 'Task completed',
-                      //   );
-                      // });
-                      //
-                      //
+                      await ref.read(tasksProvider.notifier).updateTask(task).then((value) {
+                        AppAlerts.displaySnackbar(
+                          context,
+                          task.isCompleted ? 'Task incompleted' : 'Task completed',
+                        );
+                      });
                     },
                   ),
                 );
